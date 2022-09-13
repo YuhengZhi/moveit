@@ -2321,4 +2321,9 @@ void PlanningScene::printKnownObjects(std::ostream& out) const
   out << "-----------------------------------------\n";
 }
 
+void PlanningScene::printKnownObjects() const
+{
+  printKnownObjects(std::cout);
+}
+
 }  // end of namespace planning_scene

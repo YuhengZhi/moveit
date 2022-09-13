@@ -36,6 +36,8 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/iostream.h>
+#include <pybind11/stl_bind.h>
 #include <moveit/python/pybind_rosmsg_typecasters.h>
 
 #include <moveit/planning_scene/planning_scene.h>
@@ -47,7 +49,6 @@ void def_planning_scene_bindings(py::module& m)
 {
   m.doc() = "The planning scene represents the state of the world and the robot, "
             "and can be used for collision checking";
-
   py::class_<PlanningScene, PlanningScenePtr>(m, "PlanningScene")
       .def(py::init<const moveit::core::RobotModelConstPtr&, const collision_detection::WorldPtr&>(),
            py::arg("robot_model"), py::arg("world") = collision_detection::WorldPtr(new collision_detection::World()))
@@ -65,6 +66,7 @@ void def_planning_scene_bindings(py::module& m)
            py::overload_cast<const collision_detection::CollisionRequest&, collision_detection::CollisionResult&,
                              const robot_state::RobotState&, const collision_detection::AllowedCollisionMatrix&>(
                &PlanningScene::checkCollision, py::const_))
+      .def("getCollisionDetectorNames", &PlanningScene::getCollisionDetectorNames)
       .def("getCurrentStateNonConst", &PlanningScene::getCurrentStateNonConst)
       .def("getCurrentState", &PlanningScene::getCurrentState)
       .def("getAllowedCollisionMatrix", &PlanningScene::getAllowedCollisionMatrix)
@@ -110,6 +112,7 @@ void def_planning_scene_bindings(py::module& m)
            py::arg("state"), py::arg("constr"), py::arg("group"), py::arg("verbose") = false)
       .def("setCurrentState", py::overload_cast<const moveit_msgs::RobotState&>(&PlanningScene::setCurrentState))
       .def("setCurrentState", py::overload_cast<const robot_state::RobotState&>(&PlanningScene::setCurrentState))
+      .def("printKnownObjects", py::overload_cast<>(&PlanningScene::printKnownObjects, py::const_))
       //
       ;
 }

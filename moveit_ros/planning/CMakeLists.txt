@@ -29,7 +29,10 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_eigen
   tf2_msgs
   tf2_ros
+  pybind11_catkin
 )
+
+# catkin_python_setup()
 
 find_package(Eigen3 REQUIRED)
 
@@ -50,6 +53,7 @@ set(THIS_PACKAGE_INCLUDE_DIRS
     plan_execution/include
     collision_plugin_loader/include
     moveit_cpp/include
+    # python/tools/include
 )
 
 catkin_package(
@@ -64,6 +68,7 @@ catkin_package(
     moveit_planning_scene_monitor
     moveit_collision_plugin_loader
     moveit_cpp
+    # moveit_python_tools
   INCLUDE_DIRS
     ${THIS_PACKAGE_INCLUDE_DIRS}
   CATKIN_DEPENDS
@@ -98,6 +103,22 @@ add_subdirectory(planning_components_tools)
 add_subdirectory(trajectory_execution_manager)
 add_subdirectory(plan_execution)
 add_subdirectory(moveit_cpp)
+
+add_subdirectory(python)
+set(pymoveit_ros_planning_libs
+  moveit_planning_scene_monitor
+  # moveit_python_tools
+)
+
+pybind_add_module(pymoveit_ros_planning
+    python/pymoveit_ros_planning.cpp
+    planning_scene_monitor/src/pyplanning_scene_monitor.cpp
+)
+target_include_directories(pymoveit_ros_planning SYSTEM PRIVATE ${catkin_INCLUDE_DIRS})
+target_link_libraries(pymoveit_ros_planning PRIVATE ${pymoveit_ros_planning_libs} ${catkin_LIBRARIES})
+
+#catkin_lint: ignore_once undefined_target (pymoveit_ros_planning is defined by pybind_add_module)
+install(TARGETS pymoveit_ros_planning LIBRARY DESTINATION ${CATKIN_GLOBAL_PYTHON_DESTINATION})
 
 install(
   FILES
