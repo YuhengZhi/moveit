@@ -42,7 +42,7 @@
 #include <geometric_shapes/check_isometry.h>
 #include <boost/math/constants/constants.hpp>
 #include <tf2_eigen/tf2_eigen.h>
-#include <boost/bind.hpp>
+#include <functional>
 #include <limits>
 #include <memory>
 
@@ -901,7 +901,7 @@ shapes::Mesh* VisibilityConstraint::getVisibilityCone(const moveit::core::RobotS
   std::unique_ptr<EigenSTL::vector_Vector3d> temp_points;
   if (mobile_target_frame_)
   {
-    temp_points.reset(new EigenSTL::vector_Vector3d(points_.size()));
+    temp_points = std::make_unique<EigenSTL::vector_Vector3d>(points_.size());
     for (std::size_t i = 0; i < points_.size(); ++i)
       temp_points->at(i) = tp * points_[i];
     points = temp_points.get();
@@ -1112,7 +1112,7 @@ ConstraintEvaluationResult VisibilityConstraint::decide(const moveit::core::Robo
   collision_detection::CollisionRequest req;
   collision_detection::CollisionResult res;
   collision_detection::AllowedCollisionMatrix acm;
-  acm.setDefaultEntry("cone", boost::bind(&VisibilityConstraint::decideContact, this, _1));
+  acm.setDefaultEntry("cone", [this](collision_detection::Contact& contact) { return decideContact(contact); });
   req.contacts = true;
   req.verbose = verbose;
   req.max_contacts = 1;

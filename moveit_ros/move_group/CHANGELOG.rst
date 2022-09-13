@@ -2,6 +2,38 @@
 Changelog for package moveit_ros_move_group
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.10 (2022-09-13)
+-------------------
+* Limit Cartesian speed for link(s) (`#2856 <https://github.com/ros-planning/moveit/issues/2856>`_)
+* Optionally enable dynamics monitoring in move_group node (`#3137 <https://github.com/ros-planning/moveit/issues/3137>`_)
+* Replace bind() with lambdas (`#3106 <https://github.com/ros-planning/moveit/issues/3106>`_)
+* Contributors: Michael Görner
+
+1.1.9 (2022-03-06)
+------------------
+* Fix missing include (`#3051 <https://github.com/ros-planning/moveit/issues/3051>`_)
+* Contributors: Tobias Fischer
+
+1.1.8 (2022-01-30)
+------------------
+* Improve loading of planning pipelines (`#3036 <https://github.com/ros-planning/moveit/issues/3036>`_)
+
+  Ensure that planning pipelines considered in `~/planning_pipelines/*` actually have a `planning_plugin` parameter defined.
+  Otherwise, issue an error message.
+* Contributors: Robert Haschke
+
+1.1.7 (2021-12-31)
+------------------
+* Switch to ``std::bind`` (`#2967 <https://github.com/ros-planning/moveit/issues/2967>`_)
+* Contributors: Jochen Sprickerhof
+
+1.1.6 (2021-11-06)
+------------------
+* Use newly introduced cmake macro ``moveit_build_options()`` from ``moveit_core``
+* Introduce a reference frame for collision objects (`#2037 <https://github.com/ros-planning/moveit/issues/2037>`_)
+* clang-tidy: modernize-make-shared, modernize-make-unique (`#2762 <https://github.com/ros-planning/moveit/issues/2762>`_)
+* Contributors: Felix von Drigalski, Robert Haschke, pvanlaar
+
 1.1.5 (2021-05-23)
 ------------------
 
@@ -23,7 +55,7 @@ Changelog for package moveit_ros_move_group
 ------------------
 * [fix] Let the max number of contacts be the amount of world objects + link models with geometry (`#2355 <https://github.com/ros-planning/moveit/issues/2355>`_)
 * [maint] Add comment to MOVEIT_CLASS_FORWARD (`#2315 <https://github.com/ros-planning/moveit/issues/2315>`_)
-* Contributors: Felix von Drigalski, Loy van Beek, Michael Görner, v4hn
+* Contributors: Felix von Drigalski, Loy van Beek, Michael Görner
 
 1.1.0 (2020-09-04)
 ------------------

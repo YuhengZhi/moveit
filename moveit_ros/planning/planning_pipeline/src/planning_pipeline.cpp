@@ -62,8 +62,8 @@ planning_pipeline::PlanningPipeline::PlanningPipeline(const moveit::core::RobotM
   if (pipeline_nh_.getParam(adapter_plugins_param_name, adapters))
   {
     boost::char_separator<char> sep(" ");
-    boost::tokenizer<boost::char_separator<char> > tok(adapters, sep);
-    for (boost::tokenizer<boost::char_separator<char> >::iterator beg = tok.begin(); beg != tok.end(); ++beg)
+    boost::tokenizer<boost::char_separator<char>> tok(adapters, sep);
+    for (boost::tokenizer<boost::char_separator<char>>::iterator beg = tok.begin(); beg != tok.end(); ++beg)
       adapter_plugin_names_.push_back(*beg);
   }
 
@@ -92,8 +92,8 @@ void planning_pipeline::PlanningPipeline::configure()
   // load the planning plugin
   try
   {
-    planner_plugin_loader_.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
-        "moveit_core", "planning_interface::PlannerManager"));
+    planner_plugin_loader_ = std::make_unique<pluginlib::ClassLoader<planning_interface::PlannerManager>>(
+        "moveit_core", "planning_interface::PlannerManager");
   }
   catch (pluginlib::PluginlibException& ex)
   {
@@ -136,8 +136,9 @@ void planning_pipeline::PlanningPipeline::configure()
     std::vector<planning_request_adapter::PlanningRequestAdapterConstPtr> ads;
     try
     {
-      adapter_plugin_loader_.reset(new pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>(
-          "moveit_core", "planning_request_adapter::PlanningRequestAdapter"));
+      adapter_plugin_loader_ =
+          std::make_unique<pluginlib::ClassLoader<planning_request_adapter::PlanningRequestAdapter>>(
+              "moveit_core", "planning_request_adapter::PlanningRequestAdapter");
     }
     catch (pluginlib::PluginlibException& ex)
     {
@@ -165,7 +166,7 @@ void planning_pipeline::PlanningPipeline::configure()
       }
     if (!ads.empty())
     {
-      adapter_chain_.reset(new planning_request_adapter::PlanningRequestAdapterChain());
+      adapter_chain_ = std::make_unique<planning_request_adapter::PlanningRequestAdapterChain>();
       for (planning_request_adapter::PlanningRequestAdapterConstPtr& ad : ads)
       {
         ROS_INFO_STREAM("Using planning request adapter '" << ad->getDescription() << "'");
@@ -263,6 +264,11 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
     ROS_DEBUG_STREAM("Motion planner reported a solution path with " << state_count << " states");
     if (check_solution_paths_)
     {
+      visualization_msgs::MarkerArray arr;
+      visualization_msgs::Marker m;
+      m.action = visualization_msgs::Marker::DELETEALL;
+      arr.markers.push_back(m);
+
       std::vector<std::size_t> index;
       if (!planning_scene->isPathValid(*res.trajectory_, req.path_constraints, req.group_name, false, &index))
       {
@@ -300,7 +306,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
                              << private_nh_.resolveName(MOTION_CONTACTS_TOPIC));
 
             // call validity checks in verbose mode for the problematic states
-            visualization_msgs::MarkerArray arr;
             for (std::size_t it : index)
             {
               // check validity with verbose on
@@ -324,8 +329,6 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
               }
             }
             ROS_ERROR_STREAM("Completed listing of explanations for invalid states.");
-            if (!arr.markers.empty())
-              contacts_publisher_.publish(arr);
           }
         }
         else
@@ -334,6 +337,7 @@ bool planning_pipeline::PlanningPipeline::generatePlan(const planning_scene::Pla
       }
       else
         ROS_DEBUG("Planned path was found to be valid when rechecked");
+      contacts_publisher_.publish(arr);
     }
   }
 

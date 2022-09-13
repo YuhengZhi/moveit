@@ -68,7 +68,7 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   , trajectory_slider_dock_panel_(nullptr)
 {
   trajectory_topic_property_ =
-      new rviz::RosTopicProperty("Trajectory Topic", "/move_group/display_planned_path",
+      new rviz::RosTopicProperty("Trajectory Topic", "move_group/display_planned_path",
                                  ros::message_traits::datatype<moveit_msgs::DisplayTrajectory>(),
                                  "The topic on which the moveit_msgs::DisplayTrajectory messages are received", widget,
                                  SLOT(changedTrajectoryTopic()), this);
@@ -101,6 +101,11 @@ TrajectoryVisualization::TrajectoryVisualization(rviz::Property* widget, rviz::D
   state_display_time_property_->addOptionStd("0.05s");
   state_display_time_property_->addOptionStd("0.1s");
   state_display_time_property_->addOptionStd("0.5s");
+
+  use_sim_time_property_ = new rviz::BoolProperty("Use Sim Time", false,
+                                                  "Indicates whether simulation time or wall-time is "
+                                                  "used for state display timing.",
+                                                  widget, nullptr, this);
 
   loop_display_property_ = new rviz::BoolProperty("Loop Animation", false,
                                                   "Indicates whether the last received path "
@@ -148,7 +153,7 @@ void TrajectoryVisualization::onInitialize(Ogre::SceneNode* scene_node, rviz::Di
   update_nh_ = update_nh;
 
   // Load trajectory robot
-  display_path_robot_.reset(new RobotStateVisualization(scene_node_, context_, "Planned Path", widget_));
+  display_path_robot_ = std::make_shared<RobotStateVisualization>(scene_node_, context_, "Planned Path", widget_);
   display_path_robot_->setVisualVisible(display_path_visual_enabled_property_->getBool());
   display_path_robot_->setCollisionVisible(display_path_collision_enabled_property_->getBool());
   display_path_robot_->setVisible(false);
@@ -184,7 +189,7 @@ void TrajectoryVisualization::onRobotModelLoaded(const moveit::core::RobotModelC
   }
 
   // Load robot state
-  robot_state_.reset(new moveit::core::RobotState(robot_model_));
+  robot_state_ = std::make_shared<moveit::core::RobotState>(robot_model_);
   robot_state_->setToDefaultValues();
 
   // Load rviz robot
@@ -340,8 +345,8 @@ void TrajectoryVisualization::interruptCurrentDisplay()
 
 float TrajectoryVisualization::getStateDisplayTime()
 {
-  constexpr char DEFAULT_TIME_STRING[] = "3x";
-  constexpr float DEFAULT_TIME_VALUE = -3.0f;
+  constexpr char default_time_string[] = "3x";
+  constexpr float default_time_value = -3.0f;
 
   std::string tm = state_display_time_property_->getStdString();
   boost::trim(tm);
@@ -358,8 +363,8 @@ float TrajectoryVisualization::getStateDisplayTime()
   }
   else
   {
-    state_display_time_property_->setStdString(DEFAULT_TIME_STRING);
-    return DEFAULT_TIME_VALUE;
+    state_display_time_property_->setStdString(default_time_string);
+    return default_time_value;
   }
 
   tm.resize(tm.size() - 1);
@@ -372,14 +377,14 @@ float TrajectoryVisualization::getStateDisplayTime()
   }
   catch (const boost::bad_lexical_cast& ex)
   {
-    state_display_time_property_->setStdString(DEFAULT_TIME_STRING);
-    return DEFAULT_TIME_VALUE;
+    state_display_time_property_->setStdString(default_time_string);
+    return default_time_value;
   }
 
   if (value <= 0)
   {
-    state_display_time_property_->setStdString(DEFAULT_TIME_STRING);
-    return DEFAULT_TIME_VALUE;
+    state_display_time_property_->setStdString(default_time_string);
+    return default_time_value;
   }
 
   return type * value;
@@ -390,7 +395,7 @@ void TrajectoryVisualization::dropTrajectory()
   drop_displaying_trajectory_ = true;
 }
 
-void TrajectoryVisualization::update(float wall_dt, float /*ros_dt*/)
+void TrajectoryVisualization::update(float wall_dt, float sim_dt)
 {
   if (drop_displaying_trajectory_)
   {
@@ -440,7 +445,14 @@ void TrajectoryVisualization::update(float wall_dt, float /*ros_dt*/)
   {
     int previous_state = current_state_;
     int waypoint_count = displaying_trajectory_message_->getWayPointCount();
-    current_state_time_ += wall_dt;
+    if (use_sim_time_property_->getBool())
+    {
+      current_state_time_ += sim_dt;
+    }
+    else
+    {
+      current_state_time_ += wall_dt;
+    }
     float tm = getStateDisplayTime();
 
     if (trajectory_slider_panel_ && trajectory_slider_panel_->isVisible() && trajectory_slider_panel_->isPaused())
@@ -603,6 +615,12 @@ void TrajectoryVisualization::trajectorySliderPanelVisibilityChange(bool enable)
     trajectory_slider_panel_->onEnable();
   else
     trajectory_slider_panel_->onDisable();
+}
+
+void TrajectoryVisualization::clearRobotModel()
+{
+  robot_model_.reset();
+  robot_state_.reset();
 }
 
 }  // namespace moveit_rviz_plugin

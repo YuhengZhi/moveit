@@ -53,11 +53,11 @@ public:
     : owner_(owner), dynamic_reconfigure_server_(ros::NodeHandle("~/sense_for_plan"))
   {
     dynamic_reconfigure_server_.setCallback(
-        boost::bind(&DynamicReconfigureImpl::dynamicReconfigureCallback, this, _1, _2));
+        [this](const auto& config, uint32_t level) { dynamicReconfigureCallback(config, level); });
   }
 
 private:
-  void dynamicReconfigureCallback(SenseForPlanDynamicReconfigureConfig& config, uint32_t /*level*/)
+  void dynamicReconfigureCallback(const SenseForPlanDynamicReconfigureConfig& config, uint32_t /*level*/)
   {
     owner_->setMaxSafePathCost(config.max_safe_path_cost);
     owner_->setMaxCostSources(config.max_cost_sources);
@@ -88,8 +88,8 @@ plan_execution::PlanWithSensing::PlanWithSensing(
   {
     try
     {
-      sensor_manager_loader_.reset(new pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>(
-          "moveit_core", "moveit_sensor_manager::MoveItSensorManager"));
+      sensor_manager_loader_ = std::make_unique<pluginlib::ClassLoader<moveit_sensor_manager::MoveItSensorManager>>(
+          "moveit_core", "moveit_sensor_manager::MoveItSensorManager");
     }
     catch (pluginlib::PluginlibException& ex)
     {
