@@ -1562,9 +1562,9 @@ void CollisionEnvDistanceField::getCollisionGradients(const CollisionRequest& re
   }
 
   // ROS_INFO_STREAM("Getting Self Gradients");
-  getSelfProximityGradients(gsr);
+  // getSelfProximityGradients(gsr);
   // ROS_INFO_STREAM("Getting Intra Group Gradients");
-  getIntraGroupProximityGradients(gsr);
+  // getIntraGroupProximityGradients(gsr);
   // ROS_INFO_STREAM("Getting Environment Gradients");
   getEnvironmentProximityGradients(env_distance_field, gsr);
 
