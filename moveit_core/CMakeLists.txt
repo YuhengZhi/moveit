@@ -233,6 +233,7 @@ add_subdirectory(dynamics_solver)
 add_subdirectory(python)
 set(pymoveit_libs
   moveit_collision_detection
+  moveit_collision_distance_field
   moveit_kinematic_constraints
   moveit_planning_scene
   moveit_python_tools
@@ -244,6 +245,7 @@ set(pymoveit_libs
 pybind_add_module(pymoveit_core
     python/pymoveit_core.cpp
     collision_detection/src/pycollision_detection.cpp
+    collision_distance_field/src/pycollision_distance_field.cpp
     robot_model/src/pyrobot_model.cpp
     robot_state/src/pyrobot_state.cpp
     transforms/src/pytransforms.cpp

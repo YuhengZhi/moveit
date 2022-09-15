@@ -263,6 +263,8 @@ public:
   void setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
                                   bool exclusive = false);
 
+  void setToFCL();
+
   /** \brief Set the type of collision detector to use.
    * This type must have already been added with addCollisionDetector().
    *

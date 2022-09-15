@@ -70,6 +70,8 @@ void def_planning_scene_bindings(py::module& m)
       .def("getCurrentStateNonConst", &PlanningScene::getCurrentStateNonConst)
       .def("getCurrentState", &PlanningScene::getCurrentState)
       .def("getAllowedCollisionMatrix", &PlanningScene::getAllowedCollisionMatrix)
+      .def("getWorld", &PlanningScene::getWorld)
+      .def("getRobotModel", &PlanningScene::getRobotModel, py::return_value_policy::reference)
       .def("isStateConstrained",
            py::overload_cast<const moveit_msgs::RobotState&, const kinematic_constraints::KinematicConstraintSet&, bool>(
                &PlanningScene::isStateConstrained, py::const_),
@@ -113,6 +115,8 @@ void def_planning_scene_bindings(py::module& m)
       .def("setCurrentState", py::overload_cast<const moveit_msgs::RobotState&>(&PlanningScene::setCurrentState))
       .def("setCurrentState", py::overload_cast<const robot_state::RobotState&>(&PlanningScene::setCurrentState))
       .def("printKnownObjects", py::overload_cast<>(&PlanningScene::printKnownObjects, py::const_))
+     //  .def("setToDistanceField", &PlanningScene::setToDistanceField)
+      .def("setToFCL", &PlanningScene::setToFCL)
       //
       ;
 }

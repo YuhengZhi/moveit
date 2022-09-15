@@ -42,7 +42,9 @@
 namespace py = pybind11;
 
 // Each of these functions defines the bindings for a namespace/subfolder within moveit_core
-void def_collision_detection_bindings(py::module& contact);
+void def_collision_detection_bindings(py::module& m);
+
+void def_collision_distance_field_bindings(py::module& m);
 
 void def_robot_model_bindings(py::module& m);
 
@@ -73,6 +75,7 @@ PYBIND11_MODULE(pymoveit_core, m)
   auto transforms_m = m.def_submodule("transforms");
 
   def_collision_detection_bindings(collision_detection_m);
+  def_collision_distance_field_bindings(collision_detection_m);
   def_robot_model_bindings(robot_model_m);
   def_robot_state_bindings(robot_state_m);
   def_planning_scene_bindings(planning_scene_m);

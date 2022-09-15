@@ -94,11 +94,33 @@ void def_collision_detection_bindings(py::module& m)
       .def("clear", &CollisionResult::clear)
       //
       ;
+ py::class_<DistanceRequest>(m, "DistanceRequest")
+      .def(py::init<>())
+      .def_readwrite("enable_nearest_points", &DistanceRequest::enable_nearest_points)
+      .def_readwrite("enable_signed_distance", &DistanceRequest::enable_signed_distance)
+      .def_readwrite("type", &DistanceRequest::type)
+      .def_readwrite("max_contacts_per_body", &DistanceRequest::max_contacts_per_body)
+      .def_readwrite("active_components_only", &DistanceRequest::active_components_only)
+      .def_readwrite("acm", &DistanceRequest::acm)
+      .def_readwrite("distance_threshold", &DistanceRequest::distance_threshold)
+      .def_readwrite("verbose", &DistanceRequest::verbose)
+      .def_readwrite("compute_gradient", &DistanceRequest::compute_gradient)
+      //
+      ;
+  py::class_<DistanceResult>(m, "DistanceResult")
+      .def(py::init<>())
+      .def_readwrite("collision", &DistanceResult::collision)
+      .def_readwrite("minimum_distance", &DistanceResult::minimum_distance)
+      .def_readwrite("distances", &DistanceResult::distances)
+      .def("clear", &DistanceResult::clear)
+      //
+      ;
   py::class_<AllowedCollisionMatrix>(m, "AllowedCollisionMatrix")
       .def(py::init<>())
       .def("setEntry",
            py::overload_cast<const std::string&, const std::string&, bool>(&AllowedCollisionMatrix::setEntry))
       //
+      .def("getAllEntryNames", &AllowedCollisionMatrix::getAllEntryNames)
       ;
   py::class_<World, WorldPtr>(m, "World").def(py::init<>());
 }

@@ -159,11 +159,14 @@ void CollisionEnvDistanceField::generateCollisionCheckingStructures(
     // DistanceFieldCacheEntry for CollisionRobot");
     DistanceFieldCacheEntryPtr new_dfce =
         generateDistanceFieldCacheEntry(group_name, state, acm, generate_distance_field);
+    // ROS_INFO_STREAM("Generated new DistanceFieldCacheEntry for CollisionRobot");
     boost::mutex::scoped_lock slock(update_cache_lock_);
     (const_cast<CollisionEnvDistanceField*>(this))->distance_field_cache_entry_ = new_dfce;
     dfce = new_dfce;
   }
+  // ROS_INFO_STREAM("Generating GroupStateRepresentation for " << group_name);
   getGroupStateRepresentation(dfce, state, gsr);
+  // ROS_INFO_STREAM("GSR generated");
 }
 
 void CollisionEnvDistanceField::checkSelfCollisionHelper(const collision_detection::CollisionRequest& req,
@@ -735,6 +738,7 @@ DistanceFieldCacheEntryPtr CollisionEnvDistanceField::generateDistanceFieldCache
     ROS_WARN_STREAM("Allowed Collision Matrix is null, enabling all collisions "
                     "in the DistanceFieldCacheEntry");
   }
+  // ROS_INFO_STREAM("ACM settled in DistanceFieldCacheEntry");
 
   // generateAllowedCollisionInformation(dfce);
   dfce->link_names_ = robot_model_->getJointModelGroup(group_name)->getUpdatedLinkModelNames();
@@ -1165,11 +1169,13 @@ void CollisionEnvDistanceField::getGroupStateRepresentation(const DistanceFieldC
   if (!dfce->pregenerated_group_state_representation_)
   {
     ROS_DEBUG_STREAM("Creating GroupStateRepresentation");
-
+    // ROS_INFO_STREAM("Creating GroupStateRepresentation");
     // unsigned int count = 0;
-    gsr.reset(new GroupStateRepresentation());
+    if(!gsr)
+      gsr.reset(new GroupStateRepresentation());
     gsr->dfce_ = dfce;
     gsr->gradients_.resize(dfce->link_names_.size() + dfce->attached_body_names_.size());
+    // ROS_INFO_STREAM("gsr->gradients_.size() = " << gsr->gradients_.size());
 
     Eigen::Vector3d link_size;
     Eigen::Vector3d link_origin;
@@ -1216,21 +1222,30 @@ void CollisionEnvDistanceField::getGroupStateRepresentation(const DistanceFieldC
   }
   else
   {
-    gsr.reset(new GroupStateRepresentation(*(dfce->pregenerated_group_state_representation_)));
+    if(!gsr)
+      gsr.reset(new GroupStateRepresentation(*(dfce->pregenerated_group_state_representation_)));
+    else
+      *gsr = *(dfce->pregenerated_group_state_representation_);
     gsr->dfce_ = dfce;
     gsr->gradients_.resize(dfce->link_names_.size() + dfce->attached_body_names_.size());
+    // ROS_INFO_STREAM("gsr->gradients_.size() = " << gsr->gradients_.size());
     for (unsigned int i = 0; i < dfce->link_names_.size(); i++)
     {
+      // std::cout << "i = " << i << "/" << dfce->link_names_.size() << std::endl;
       const moveit::core::LinkModel* ls = state.getLinkModel(dfce->link_names_[i]);
       if (dfce->link_has_geometry_[i])
       {
+        // std::cout << "Link has geometry [" << i << "]" << std::endl;
         gsr->link_body_decompositions_[i]->updatePose(state.getFrameTransform(ls->getName()));
+        // std::cout << "Updated link body decomposition pose" << std::endl;
         gsr->link_distance_fields_[i]->updatePose(state.getFrameTransform(ls->getName()));
+        // std::cout << "Updated link distance field pose" << std::endl;
         gsr->gradients_[i].sphere_locations = gsr->link_body_decompositions_[i]->getSphereCenters();
+        // std::cout << "Updated sphere locations" << std::endl;
       }
     }
   }
-
+  // ROS_INFO_STREAM("Sphere inserted");
   for (unsigned int i = 0; i < dfce->attached_body_names_.size(); i++)
   {
     int link_index = dfce->attached_body_link_state_indices_[i];
@@ -1253,6 +1268,7 @@ void CollisionEnvDistanceField::getGroupStateRepresentation(const DistanceFieldC
     gsr->gradients_[i + dfce->link_names_.size()].sphere_radii =
         gsr->attached_body_decompositions_.back()->getSphereRadii();
     gsr->gradients_[i + dfce->link_names_.size()].joint_name = ls->getParentJointModel()->getName();
+    // std::cout << "Attached " << i << "/" << dfce->attached_body_names_.size() << " " << std::endl;
   }
 }
 
@@ -1431,25 +1447,32 @@ void CollisionEnvDistanceField::checkCollision(const CollisionRequest& req, Coll
                                                const moveit::core::RobotState& state, const AllowedCollisionMatrix& acm,
                                                GroupStateRepresentationPtr& gsr) const
 {
-  if (!gsr)
+  // std::cout << "checkCollision" << std::endl;
+  if (!gsr || !gsr->dfce_)
   {
+    // std::cout << "gsr or dfce_ is null" << std::endl;
     generateCollisionCheckingStructures(req.group_name, state, &acm, gsr, true);
   }
   else
   {
+    // std::cout << "gsr is NOT null" << std::endl;
     updateGroupStateRepresentationState(state, gsr);
   }
+  // std::cout << "Getting Self Collisions" << std::endl;
   bool done = getSelfCollisions(req, res, gsr);
   if (!done)
   {
+    // std::cout << "Getting Intra Group Collisions" << std::endl;
     done = getIntraGroupCollisions(req, res, gsr);
   }
   if (!done)
   {
+    // std::cout << "Getting Environment Collisions" << std::endl;
     getEnvironmentCollisions(req, res, distance_field_cache_entry_world_->distance_field_, gsr);
   }
-
+  // std::cout << "Setting GSR" << std::endl;
   (const_cast<CollisionEnvDistanceField*>(this))->last_gsr_ = gsr;
+  // std::cout << "Done" << std::endl;
 }
 
 void CollisionEnvDistanceField::checkRobotCollision(const CollisionRequest& req, CollisionResult& res,
@@ -1529,7 +1552,7 @@ void CollisionEnvDistanceField::getCollisionGradients(const CollisionRequest& re
 {
   distance_field::DistanceFieldConstPtr env_distance_field = distance_field_cache_entry_world_->distance_field_;
 
-  if (!gsr)
+  if (!gsr || !gsr->dfce_)
   {
     generateCollisionCheckingStructures(req.group_name, state, acm, gsr, true);
   }
@@ -1538,8 +1561,11 @@ void CollisionEnvDistanceField::getCollisionGradients(const CollisionRequest& re
     updateGroupStateRepresentationState(state, gsr);
   }
 
+  // ROS_INFO_STREAM("Getting Self Gradients");
   getSelfProximityGradients(gsr);
+  // ROS_INFO_STREAM("Getting Intra Group Gradients");
   getIntraGroupProximityGradients(gsr);
+  // ROS_INFO_STREAM("Getting Environment Gradients");
   getEnvironmentProximityGradients(env_distance_field, gsr);
 
   (const_cast<CollisionEnvDistanceField*>(this))->last_gsr_ = gsr;

@@ -313,6 +313,13 @@ void PlanningScene::setActiveCollisionDetector(const collision_detection::Collis
   setActiveCollisionDetector(allocator->getName());
 }
 
+void PlanningScene::setToFCL()
+{
+  collision_detection::CollisionDetectorAllocatorPtr allocator(
+      new collision_detection::CollisionDetectorAllocatorFCL());
+  setActiveCollisionDetector(allocator, true);
+}
+
 bool PlanningScene::setActiveCollisionDetector(const std::string& collision_detector_name)
 {
   CollisionDetectorIterator it = collision_.find(collision_detector_name);

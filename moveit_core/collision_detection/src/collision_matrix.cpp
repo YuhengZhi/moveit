@@ -316,11 +316,14 @@ void AllowedCollisionMatrix::clear()
 void AllowedCollisionMatrix::getAllEntryNames(std::vector<std::string>& names) const
 {
   names.clear();
-  for (const auto& entry : entries_)
+  std::cout << "printing ACM entry names" << std::endl;
+  for (const auto& entry : entries_) {
+    std::cout << entry.first << std::endl;
     if (!names.empty() && names.back() == entry.first)
       continue;
     else
       names.push_back(entry.first);
+  }
 }
 
 void AllowedCollisionMatrix::getMessage(moveit_msgs::AllowedCollisionMatrix& msg) const
