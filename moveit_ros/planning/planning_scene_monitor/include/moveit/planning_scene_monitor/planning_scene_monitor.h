@@ -50,6 +50,7 @@
 #include <boost/thread/shared_mutex.hpp>
 #include <boost/thread/recursive_mutex.hpp>
 #include <memory>
+#include <Eigen/Dense>
 
 namespace planning_scene_monitor
 {
@@ -157,6 +158,15 @@ public:
                        const std::string& name = "");
 
   ~PlanningSceneMonitor();
+
+
+
+  //TODO:
+  void enableChangeDetection();
+  void disableChangeDetection();
+  void resetChangeDetection();
+
+  Eigen::MatrixXd getChangeDetectionCoordinate();
 
   /** \brief Get the name of this monitor */
   const std::string& getName() const
@@ -458,6 +468,7 @@ protected:
 
   bool getShapeTransformCache(const std::string& target_frame, const ros::Time& target_time,
                               occupancy_map_monitor::ShapeTransformCache& cache) const;
+
 
   /// The name of this scene monitor
   std::string monitor_name_;

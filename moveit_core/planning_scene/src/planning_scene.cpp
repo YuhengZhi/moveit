@@ -56,6 +56,7 @@ const std::string PlanningScene::DEFAULT_SCENE_NAME = "(noname)";
 
 const std::string LOGNAME = "planning_scene";
 
+
 class SceneTransforms : public moveit::core::Transforms
 {
 public:
@@ -159,6 +160,8 @@ void PlanningScene::initialize()
   const std::vector<srdf::Model::DisabledCollision>& dc = getRobotModel()->getSRDF()->getDisabledCollisionPairs();
   for (const srdf::Model::DisabledCollision& it : dc)
     acm_->setEntry(it.link1_, it.link2_, true);
+
+  
 
   setActiveCollisionDetector(collision_detection::CollisionDetectorAllocatorFCL::create());
 }
@@ -286,6 +289,26 @@ void PlanningScene::addCollisionDetector(const collision_detection::CollisionDet
 
   detector->cenv_unpadded_ = detector->alloc_->allocateEnv(world_, getRobotModel());
   detector->cenv_unpadded_const_ = detector->cenv_unpadded_;
+}
+
+
+//TODO
+void PlanningScene::getOctomap()
+{
+  auto octomap = world_->getObject("<octomap>");
+  auto octree = static_cast<const shapes::OcTree*>(octomap->shapes_[0].get());
+  auto tree = octree->octree;
+  if(tree)
+  {
+    printf("Inside OctoTree\n");
+    auto begin = tree->changedKeysBegin();
+    auto end = tree->changedKeysEnd();
+    for(; begin != end; ++begin){
+      octomap::OcTreeKey key = begin ->  first;
+      octomap::point3d point = tree->keyToCoord(key);
+      std::cout << point.x() << " " << point.y() << " " << point.z() << std::endl;
+    }
+  }
 }
 
 void PlanningScene::setActiveCollisionDetector(const collision_detection::CollisionDetectorAllocatorPtr& allocator,
@@ -488,12 +511,16 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
 {
   // check collision with the world using the padded version
   getCollisionEnv()->checkRobotCollision(req, res, robot_state, getAllowedCollisionMatrix());
-
+  auto world_collision_distance = res.distance;
   if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
   {
     // do self-collision checking with the unpadded version of the robot
     getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, getAllowedCollisionMatrix());
   }
+  // if (res.distance < world_collision_distance){
+  //   res.distance = world_collision_distance;
+  //   std::cout << "c++ distance: " << res.distance << std::endl;
+  // }
 }
 
 void PlanningScene::checkSelfCollision(const collision_detection::CollisionRequest& req,
@@ -512,10 +539,15 @@ void PlanningScene::checkCollision(const collision_detection::CollisionRequest& 
 {
   // check collision with the world using the padded version
   getCollisionEnv()->checkRobotCollision(req, res, robot_state, acm);
+  auto world_collision_distance = res.distance;
 
   // do self-collision checking with the unpadded version of the robot
-  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts))
+  if (!res.collision || (req.contacts && res.contacts.size() < req.max_contacts)){
     getCollisionEnvUnpadded()->checkSelfCollision(req, res, robot_state, acm);
+    if (res.distance > world_collision_distance){
+    res.distance = world_collision_distance;
+  }
+  }
 }
 
 void PlanningScene::checkCollisionUnpadded(const collision_detection::CollisionRequest& req,

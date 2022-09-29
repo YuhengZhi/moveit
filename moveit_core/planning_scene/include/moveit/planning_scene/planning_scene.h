@@ -347,6 +347,11 @@ public:
       Since the function is non-const, the current state transforms are updated before the collision check. */
   bool isStateColliding(const std::string& group = "", bool verbose = false);
 
+  void getOctomap();
+  void resetChangedKeyDetection();
+  void disableChangedKeyDetection();
+  void enableChangedKeyDetection();
+
   /** \brief Check if the current state is in collision (with the environment or self collision).  If a group name is
      specified,
       collision checking is done for that group only. It is expected the current state transforms are up to date. */

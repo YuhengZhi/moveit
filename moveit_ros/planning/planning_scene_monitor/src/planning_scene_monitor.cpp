@@ -528,6 +528,38 @@ void PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningS
   newPlanningSceneMessage(*scene);
 }
 
+
+//TODO: 
+void PlanningSceneMonitor::enableChangeDetection(){
+  octomap_monitor_->getOcTreePtr()->enableChangeDetection(true);
+}
+
+void PlanningSceneMonitor::disableChangeDetection(){
+  octomap_monitor_->getOcTreePtr()->enableChangeDetection(false);
+}
+
+void PlanningSceneMonitor::resetChangeDetection(){
+  octomap_monitor_->getOcTreePtr()->resetChangeDetection();
+}
+
+Eigen::MatrixXd PlanningSceneMonitor::getChangeDetectionCoordinate(){
+  auto octree = octomap_monitor_->getOcTreePtr();
+  auto tree_begin = octree->changedKeysBegin();
+  auto tree_end = octree->changedKeysEnd();
+  int i = 1;
+  Eigen::MatrixXd coordinate(i, 3);
+  for(auto it = tree_begin; it != tree_end; ++it){
+    octomap::point3d point = octree->keyToCoord(it->first);
+    if (i > 1) coordinate.conservativeResize(i, 3);
+    coordinate(i, 0) = point.x();
+    coordinate(i, 1) = point.y();
+    coordinate(i, 2) = point.z();
+    i++;
+  }
+  octree->resetChangeDetection();
+  return coordinate;
+}
+
 void PlanningSceneMonitor::clearOctomap()
 {
   bool removed = false;

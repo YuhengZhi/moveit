@@ -77,6 +77,10 @@ void def_planning_scene_monitor_bindings(py::module& m)
                py::arg("update_type") = PlanningSceneMonitor::SceneUpdateType::UPDATE_SCENE)
           .def("requestPlanningSceneState", &PlanningSceneMonitor::requestPlanningSceneState,
                py::arg("service_name") = PlanningSceneMonitor::DEFAULT_PLANNING_SCENE_SERVICE)
+          .def("enableChangeDetection", &PlanningSceneMonitor::enableChangeDetection)
+          .def("disableChangeDetection", &PlanningSceneMonitor::disableChangeDetection)
+          .def("resetChangeDetection", &PlanningSceneMonitor::resetChangeDetection)
+          .def("getChangedDetectionCoordinate", &PlanningSceneMonitor::getChangeDetectionCoordinate)
       //
       ;
 }

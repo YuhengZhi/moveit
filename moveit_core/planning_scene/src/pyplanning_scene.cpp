@@ -117,6 +117,10 @@ void def_planning_scene_bindings(py::module& m)
       .def("printKnownObjects", py::overload_cast<>(&PlanningScene::printKnownObjects, py::const_))
      //  .def("setToDistanceField", &PlanningScene::setToDistanceField)
       .def("setToFCL", &PlanningScene::setToFCL)
+      .def("getOctomap", &PlanningScene::getOctomap)
+     // .def("enableChangedKeyDetection", &PlanningScene::enableChangedKeyDetection)")
+      //.def("disableChangedKeyDetection", &PlanningScene::disableChangedKeyDetection)")
+      //.def("resetChangedKeyDetection", &PlanningScene::resetChangedKeyDetection)")
       //
       ;
 }
