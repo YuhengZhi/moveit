@@ -37,6 +37,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include <moveit/python/pybind_rosmsg_typecasters.h>
+#include <pybind11/eigen.h>
 
 #include <moveit/planning_scene_monitor/planning_scene_monitor.h>
 
@@ -83,4 +84,4 @@ void def_planning_scene_monitor_bindings(py::module& m)
           .def("getChangedDetectionCoordinate", &PlanningSceneMonitor::getChangeDetectionCoordinate)
       //
       ;
-}
+}    

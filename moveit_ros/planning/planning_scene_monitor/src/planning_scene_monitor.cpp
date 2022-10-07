@@ -545,7 +545,10 @@ void PlanningSceneMonitor::resetChangeDetection(){
 Eigen::MatrixXd PlanningSceneMonitor::getChangeDetectionCoordinate(){
   auto octree = octomap_monitor_->getOcTreePtr();
   auto tree_begin = octree->changedKeysBegin();
-  auto tree_end = octree->changedKeysEnd();
+  auto tree_end = octree->changedKeysEnd(); 
+  if (tree_begin == tree_end){
+    return Eigen::MatrixXd();
+  }
   int i = 1;
   Eigen::MatrixXd coordinate(i, 3);
   for(auto it = tree_begin; it != tree_end; ++it){
