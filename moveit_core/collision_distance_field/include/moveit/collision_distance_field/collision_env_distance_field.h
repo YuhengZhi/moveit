@@ -105,6 +105,14 @@ public:
   void createCollisionModelMarker(const moveit::core::RobotState& state,
                                   visualization_msgs::MarkerArray& model_markers) const;
 
+  void getGradientMarkers(double min_distance, double max_distance, const std::string& frame_id,
+                                       const ros::Time& stamp, visualization_msgs::MarkerArray& model_markers) const;
+  void getPlaneMarkers(distance_field::PlaneVisualizationType type, double length, double width, double height, 
+    const Eigen::Vector3d& origin, const std::string& frame_id, const ros::Time& stamp, 
+    visualization_msgs::Marker& plane_marker) const;
+  void getIsoSurfaceMarkers(double min_distance, double max_distance, 
+    const std::string& frame_id, const ros::Time& stamp, visualization_msgs::Marker& iso_surface_markers) const;
+
   virtual double distanceSelf(const moveit::core::RobotState& /* state */) const
   {
     return 0.0;

@@ -1056,6 +1056,39 @@ void CollisionEnvDistanceField::createCollisionModelMarker(const moveit::core::R
   }
 }
 
+void CollisionEnvDistanceField::getGradientMarkers(double min_distance, double max_distance, const std::string& frame_id,
+                                       const ros::Time& stamp, visualization_msgs::MarkerArray& gradient_markers) const
+{
+  distance_field_cache_entry_world_->distance_field_->getGradientMarkers(min_distance, max_distance, frame_id, stamp,
+                                                                   gradient_markers);
+}
+
+void CollisionEnvDistanceField::getPlaneMarkers(distance_field::PlaneVisualizationType type, double length, double width, double height,
+                                    const Eigen::Vector3d& origin, const std::string& frame_id, const ros::Time& stamp, visualization_msgs::Marker& plane_marker) const
+{
+  distance_field_cache_entry_world_->distance_field_->getPlaneMarkers(type, length, width, height, origin, frame_id, stamp, plane_marker);
+  plane_marker.pose.position.x = 0;
+  plane_marker.pose.position.y = 0;
+  plane_marker.pose.position.z = 0;
+  plane_marker.pose.orientation.x = 0;
+  plane_marker.pose.orientation.y = 0;
+  plane_marker.pose.orientation.z = 0;
+  plane_marker.pose.orientation.w = 1;
+  plane_marker.lifetime = ros::Duration(0);
+}
+
+void CollisionEnvDistanceField::getIsoSurfaceMarkers(double min_distance, double max_distance, 
+                                                    const std::string& frame_id, const ros::Time& stamp, 
+                                                    visualization_msgs::Marker& iso_surface_markers) const
+{
+  distance_field_cache_entry_world_->distance_field_->getIsoSurfaceMarkers(min_distance, max_distance, frame_id, stamp, iso_surface_markers);
+  iso_surface_markers.pose.orientation.x = 0;
+  iso_surface_markers.pose.orientation.y = 0;
+  iso_surface_markers.pose.orientation.z = 0;
+  iso_surface_markers.pose.orientation.w = 1;
+  iso_surface_markers.lifetime = ros::Duration(0);
+}
+
 void CollisionEnvDistanceField::addLinkBodyDecompositions(
     double resolution, const std::map<std::string, std::vector<CollisionSphere>>& link_spheres)
 {
@@ -1561,12 +1594,14 @@ void CollisionEnvDistanceField::getCollisionGradients(const CollisionRequest& re
     updateGroupStateRepresentationState(state, gsr);
   }
 
+  bool in_collision = false;
   // ROS_INFO_STREAM("Getting Self Gradients");
-  // getSelfProximityGradients(gsr);
+  // in_collision = getSelfProximityGradients(gsr) || in_collision;
   // ROS_INFO_STREAM("Getting Intra Group Gradients");
-  // getIntraGroupProximityGradients(gsr);
+  // in_collision = getIntraGroupProximityGradients(gsr) || in_collision;
   // ROS_INFO_STREAM("Getting Environment Gradients");
-  getEnvironmentProximityGradients(env_distance_field, gsr);
+  in_collision = getEnvironmentProximityGradients(env_distance_field, gsr) || in_collision;
+  res.collision = in_collision;
 
   (const_cast<CollisionEnvDistanceField*>(this))->last_gsr_ = gsr;
 }
@@ -1704,7 +1739,7 @@ bool CollisionEnvDistanceField::getEnvironmentProximityGradients(
     }
 
     bool coll = getCollisionSphereGradients(env_distance_field.get(), *collision_spheres_1, *sphere_centers_1,
-                                            gsr->gradients_[i], ENVIRONMENT, collision_tolerance_, false,
+                                            gsr->gradients_[i], ENVIRONMENT, collision_tolerance_, true, //#TODO: make this a parameter
                                             max_propogation_distance_, false);
     if (coll)
     {
@@ -1779,7 +1814,7 @@ void CollisionEnvDistanceField::updateDistanceObject(const std::string& id, Dist
   World::ObjectConstPtr object = getWorld()->getObject(id);
   if (object)
   {
-    ROS_DEBUG_STREAM("Updating/Adding Object '" << object->id_ << "' with " << object->shapes_.size()
+    ROS_INFO_STREAM("Updating/Adding Object '" << object->id_ << "' with " << object->shapes_.size()
                                                 << " shapes  to CollisionEnvDistanceField");
     std::vector<PosedBodyPointDecompositionPtr> shape_points;
     for (unsigned int i = 0; i < object->shapes_.size(); i++)
@@ -1790,7 +1825,8 @@ void CollisionEnvDistanceField::updateDistanceObject(const std::string& id, Dist
         const shapes::OcTree* octree_shape = static_cast<const shapes::OcTree*>(shape.get());
         std::shared_ptr<const octomap::OcTree> octree = octree_shape->octree;
 
-        shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(octree));
+        shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(octree, dfce->distance_field_));
+        // shape_points.push_back(std::make_shared<PosedBodyPointDecomposition>(octree));
       }
       else
       {
@@ -1810,6 +1846,7 @@ void CollisionEnvDistanceField::updateDistanceObject(const std::string& id, Dist
     ROS_DEBUG_STREAM("Removing Object '" << id << "' from CollisionEnvDistanceField");
     dfce->posed_body_point_decompositions_.erase(id);
   }
+  ROS_INFO_STREAM("Added " << add_points.size() << " points to distance field");
 }
 
 CollisionEnvDistanceField::DistanceFieldCacheEntryWorldPtr
@@ -1822,10 +1859,16 @@ CollisionEnvDistanceField::generateDistanceFieldCacheEntryWorld()
 
   EigenSTL::vector_Vector3d add_points;
   EigenSTL::vector_Vector3d subtract_points;
+  ROS_INFO_STREAM("Adding " << getWorld()->size() << " objects to distance field");
   for (const std::pair<const std::string, ObjectPtr>& object : *getWorld())
   {
     updateDistanceObject(object.first, dfce, add_points, subtract_points);
   }
+  ROS_INFO_STREAM("Adding " << add_points.size() << " points to distance field");
+  // for (int i = 0; i < add_points.size(); i+=50)
+  // {
+  //   std::cout << add_points[i].transpose() << std::endl;
+  // }
   dfce->distance_field_->addPointsToField(add_points);
   return dfce;
 }

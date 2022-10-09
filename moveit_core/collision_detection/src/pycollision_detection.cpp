@@ -121,6 +121,10 @@ void def_collision_detection_bindings(py::module& m)
            py::overload_cast<const std::string&, const std::string&, bool>(&AllowedCollisionMatrix::setEntry))
       //
       .def("getAllEntryNames", &AllowedCollisionMatrix::getAllEntryNames)
+      .def("print", [](const AllowedCollisionMatrix& acm){
+            acm.print(std::cout);
+      }
+      )
       ;
   py::class_<World, WorldPtr>(m, "World").def(py::init<>());
 }
