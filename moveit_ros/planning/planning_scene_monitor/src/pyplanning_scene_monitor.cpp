@@ -82,6 +82,7 @@ void def_planning_scene_monitor_bindings(py::module& m)
           .def("disableChangeDetection", &PlanningSceneMonitor::disableChangeDetection)
           .def("resetChangeDetection", &PlanningSceneMonitor::resetChangeDetection)
           .def("getChangedDetectionCoordinate", &PlanningSceneMonitor::getChangeDetectionCoordinate)
+          .def("getDetectionState", &PlanningSceneMonitor::getDetectionState)
       //
       ;
 }    

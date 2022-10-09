@@ -532,20 +532,30 @@ void PlanningSceneMonitor::newPlanningSceneCallback(const moveit_msgs::PlanningS
 //TODO: 
 void PlanningSceneMonitor::enableChangeDetection(){
   octomap_monitor_->getOcTreePtr()->enableChangeDetection(true);
+  std::cout << "Change detection enabled" << std::endl;
 }
 
 void PlanningSceneMonitor::disableChangeDetection(){
   octomap_monitor_->getOcTreePtr()->enableChangeDetection(false);
+  std::cout << "Change detection disabled" << std::endl;
 }
 
 void PlanningSceneMonitor::resetChangeDetection(){
   octomap_monitor_->getOcTreePtr()->resetChangeDetection();
+  std::cout << "Change detection reset" << std::endl;
+}
+
+bool PlanningSceneMonitor::getDetectionState(){
+  auto octree = octomap_monitor_->getOcTreePtr();
+  return octree->isChangeDetectionEnabled();
 }
 
 Eigen::MatrixXd PlanningSceneMonitor::getChangeDetectionCoordinate(){
   auto octree = octomap_monitor_->getOcTreePtr();
+  octree->lockWrite();
   auto tree_begin = octree->changedKeysBegin();
   auto tree_end = octree->changedKeysEnd(); 
+  std::cout << "changed keys size: " << octree->numChangesDetected() << std::endl;
   if (tree_begin == tree_end){
     return Eigen::MatrixXd();
   }
@@ -559,6 +569,7 @@ Eigen::MatrixXd PlanningSceneMonitor::getChangeDetectionCoordinate(){
     coordinate(i, 2) = point.z();
     i++;
   }
+  octree->unlockWrite();
   octree->resetChangeDetection();
   return coordinate;
 }

@@ -161,10 +161,11 @@ public:
 
 
 
-  //TODO:
+  //TODO
   void enableChangeDetection();
   void disableChangeDetection();
   void resetChangeDetection();
+  bool getDetectionState();
 
   Eigen::MatrixXd getChangeDetectionCoordinate();
 
