@@ -436,12 +436,14 @@ void DistanceField::getPlaneMarkers(PlaneVisualizationType type, double length, 
           plane_marker.colors[last].r = fmax(fmin(0.1 / fabs(dist), 1.0), 0.0);
           plane_marker.colors[last].g = fmax(fmin(0.05 / fabs(dist), 1.0), 0.0);
           plane_marker.colors[last].b = fmax(fmin(0.01 / fabs(dist), 1.0), 0.0);
+          plane_marker.colors[last].a = 1.0;
         }
         else
         {
           plane_marker.colors[last].b = fmax(fmin(0.1 / (dist + 0.001), 1.0), 0.0);
           plane_marker.colors[last].g = fmax(fmin(0.05 / (dist + 0.001), 1.0), 0.0);
           plane_marker.colors[last].r = fmax(fmin(0.01 / (dist + 0.001), 1.0), 0.0);
+          plane_marker.colors[last].a = 1.0;
         }
       }
     }

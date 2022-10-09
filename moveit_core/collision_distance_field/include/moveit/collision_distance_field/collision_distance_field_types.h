@@ -348,6 +348,8 @@ public:
 
   PosedBodyPointDecomposition(const std::shared_ptr<const octomap::OcTree>& octree);
 
+  PosedBodyPointDecomposition(const std::shared_ptr<const octomap::OcTree>& octree, const distance_field::DistanceFieldPtr& df);
+
   const EigenSTL::vector_Vector3d& getCollisionPoints() const
   {
     return posed_collision_points_;

@@ -586,7 +586,6 @@ public:
    */
   virtual double getUninitializedDistance() const = 0;
 
-protected:
   /**
    * @brief Get the points associated with an octree.
    * @param [in] octree The octree to find points for.
@@ -594,6 +593,7 @@ protected:
    */
   void getOcTreePoints(const octomap::OcTree* octree, EigenSTL::vector_Vector3d* points);
 
+protected:
   /**
    * \brief Helper function that sets the point value and color given
    * the distance.

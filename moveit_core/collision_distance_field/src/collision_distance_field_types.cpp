@@ -183,9 +183,11 @@ bool collision_detection::getCollisionSphereGradients(const distance_field::Dist
 
     if (stop_at_first_collision && in_collision)
     {
+      gradient.collision = true;
       return true;
     }
   }
+  gradient.collision = in_collision;
   return in_collision;
 }
 
@@ -342,13 +344,24 @@ collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(
     const std::shared_ptr<const octomap::OcTree>& octree)
   : body_decomposition_()
 {
+  // TODO: this does not take into account the occupancy of the nodes. Do not use
   int num_nodes = octree->getNumLeafNodes();
   posed_collision_points_.reserve(num_nodes);
-  for (octomap::OcTree::tree_iterator tree_iter = octree->begin_tree(); tree_iter != octree->end_tree(); ++tree_iter)
+  
+  for (octomap::OcTree::iterator leaf_iter = octree->begin(); leaf_iter != octree->end_tree(); ++leaf_iter)
   {
-    Eigen::Vector3d p = Eigen::Vector3d(tree_iter.getX(), tree_iter.getY(), tree_iter.getZ());
+    Eigen::Vector3d p = Eigen::Vector3d(leaf_iter.getX(), leaf_iter.getY(), leaf_iter.getZ());
     posed_collision_points_.push_back(p);
   }
+}
+
+collision_detection::PosedBodyPointDecomposition::PosedBodyPointDecomposition(
+  const std::shared_ptr<const octomap::OcTree>& octree, 
+  const distance_field::DistanceFieldPtr& df)
+{
+  int num_nodes = octree->getNumLeafNodes();
+  posed_collision_points_.reserve(num_nodes);
+  df->getOcTreePoints(octree.get(), &posed_collision_points_);
 }
 
 void collision_detection::PosedBodyPointDecomposition::updatePose(const Eigen::Isometry3d& trans)
