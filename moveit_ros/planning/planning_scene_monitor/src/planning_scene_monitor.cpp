@@ -550,26 +550,30 @@ bool PlanningSceneMonitor::getDetectionState(){
   return octree->isChangeDetectionEnabled();
 }
 
+int PlanningSceneMonitor::getNumChangeDetection(){
+  return static_cast<int>(octomap_monitor_->getOcTreePtr()->numChangesDetected());
+}
+
 Eigen::MatrixXd PlanningSceneMonitor::getChangeDetectionCoordinate(){
   auto octree = octomap_monitor_->getOcTreePtr();
-  octree->lockWrite();
+  // octree->lockWrite();
   auto tree_begin = octree->changedKeysBegin();
   auto tree_end = octree->changedKeysEnd(); 
   std::cout << "changed keys size: " << octree->numChangesDetected() << std::endl;
   if (tree_begin == tree_end){
     return Eigen::MatrixXd();
   }
-  int i = 1;
-  Eigen::MatrixXd coordinate(i, 3);
-  for(auto it = tree_begin; it != tree_end; ++it){
+
+  int i = 0;
+  auto num_changed_pts = static_cast<int>(octomap_monitor_->getOcTreePtr()->numChangesDetected());
+  Eigen::MatrixXd coordinate(num_changed_pts, 3);
+  for(auto it = tree_begin; it != tree_end; it++, i++){
     octomap::point3d point = octree->keyToCoord(it->first);
-    if (i > 1) coordinate.conservativeResize(i, 3);
     coordinate(i, 0) = point.x();
     coordinate(i, 1) = point.y();
     coordinate(i, 2) = point.z();
-    i++;
   }
-  octree->unlockWrite();
+  // octree->unlockWrite();
   octree->resetChangeDetection();
   return coordinate;
 }

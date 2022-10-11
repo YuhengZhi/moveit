@@ -166,6 +166,7 @@ public:
   void disableChangeDetection();
   void resetChangeDetection();
   bool getDetectionState();
+  int getNumChangeDetection();
 
   Eigen::MatrixXd getChangeDetectionCoordinate();
 
