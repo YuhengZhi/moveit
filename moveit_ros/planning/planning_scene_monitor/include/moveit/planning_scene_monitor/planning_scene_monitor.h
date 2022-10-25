@@ -178,9 +178,10 @@ public:
   void disableChangeDetection();
   void resetChangeDetection();
   bool getDetectionState();
+  int getNumChangeDetection();
 
-  Eigen::MatrixXd getChangeDetectionCoordinate();
-  // bool getChangeDetectionCoordinate();
+  // Eigen::MatrixXd getChangeDetectionCoordinate();
+  int getChangeDetectionCoordinate();
 
   /** \brief Get the name of this monitor */
   const std::string& getName() const

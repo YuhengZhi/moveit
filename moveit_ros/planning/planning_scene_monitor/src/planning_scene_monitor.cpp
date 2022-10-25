@@ -600,7 +600,12 @@ bool PlanningSceneMonitor::getDetectionState(){
 //   return coordinate;
 // }
 
-bool PlanningSceneMonitor::getChangeDetectionCoordinate(){
+
+int PlanningSceneMonitor::getNumChangeDetection(){
+  return static_cast<int>(octomap_monitor_->getOcTreePtr()->numChangesDetected());
+}
+
+int PlanningSceneMonitor::getChangeDetectionCoordinate(){
   auto octree = octomap_monitor_->getOcTreePtr();
   std::cout << "Locking write" << std::endl;
   octree->lockWrite();
@@ -629,6 +634,7 @@ bool PlanningSceneMonitor::getChangeDetectionCoordinate(){
   std::cout << "Unlocking write" << std::endl;
   octree->unlockWrite();
   std::cout << "Unlocking write done" << std::endl;
+  //TODO: return number of changes
   return true;
 }
 
