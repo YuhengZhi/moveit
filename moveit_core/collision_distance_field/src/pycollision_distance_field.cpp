@@ -43,6 +43,7 @@
 #include <moveit/collision_detection/collision_matrix.h>
 // #include <moveit/collision_detection/collision_common.h>
 #include <moveit/python/pybind_rosmsg_typecasters.h>
+#include <ros/ros.h>
 
 namespace py = pybind11;
 
@@ -57,6 +58,12 @@ void def_collision_distance_field_bindings(py::module& m)
           py::arg("rel"), py::arg("radius"))
     //
     ;
+  py::enum_<CollisionType>(m, "CollisionType")
+      .value("NONE", CollisionType::NONE)
+      .value("SELF", CollisionType::SELF)
+      .value("INTRA", CollisionType::INTRA)
+      .value("ENVIRONMENT", CollisionType::ENVIRONMENT)
+      .export_values();
   py::class_<GradientInfo>(m, "GradientInfo")
     .def(py::init<>())
     .def_readwrite("gradients", &GradientInfo::gradients)
@@ -66,6 +73,7 @@ void def_collision_distance_field_bindings(py::module& m)
     .def_readwrite("distances", &GradientInfo::distances)
     .def_readwrite("sphere_radii", &GradientInfo::sphere_radii)
     .def_readwrite("joint_name", &GradientInfo::joint_name)
+    .def_readwrite("types", &GradientInfo::types)
     .def("clear", &GradientInfo::clear)
     //
     ;
@@ -76,10 +84,11 @@ void def_collision_distance_field_bindings(py::module& m)
     // .def_readwrite("link_distance_fields_", &GroupStateRepresentation::link_distance_fields_)
     .def_readwrite("gradients", &GroupStateRepresentation::gradients_)
     ;
-  // py::class_<>(m, "GroupStateRepresentationPtr")
-  //   .def(py::init<>())
-  //   ;
-  // py::class_<GroupStateRepresentation>
+  py::enum_<distance_field::PlaneVisualizationType>(m, "PlaneVisualizationType")
+      .value("XY_PLANE", distance_field::PlaneVisualizationType::XY_PLANE)
+      .value("XZ_PLANE", distance_field::PlaneVisualizationType::XZ_PLANE)
+      .value("YZ_PLANE", distance_field::PlaneVisualizationType::YZ_PLANE)
+      .export_values();
   py::class_<CollisionEnvDistanceField>(m, "CollisionEnvDistanceField")
     .def(py::init<const moveit::core::RobotModelConstPtr&, const WorldPtr&,
     const std::map<std::string, std::vector<CollisionSphere>>&, double, double,
@@ -113,6 +122,35 @@ void def_collision_distance_field_bindings(py::module& m)
       &CollisionEnvDistanceField::getCollisionGradients, py::const_), 
       py::arg("req"), py::arg("res"), py::arg("state"),
       py::arg("acm"), py::arg("gsr"))
+    .def("createCollisionModelMarker", [](const CollisionEnvDistanceField& self, const moveit::core::RobotState& state) {
+          visualization_msgs::MarkerArray marker_array;
+          self.createCollisionModelMarker(state, marker_array);
+          return marker_array;
+    })
+    .def("createCollisionGradientsMarkers", [](const CollisionEnvDistanceField& self, double min_distance, double max_distance, const std::string& frame_id,
+                                       const std::string& stamp_name) {
+      visualization_msgs::MarkerArray marker_array;
+      auto stamp = (stamp_name == "now") ? ros::Time::now() : ros::Time(0);
+      self.getGradientMarkers(min_distance, max_distance, frame_id, stamp, marker_array);
+      
+      return marker_array;
+    })
+    .def("createPlaneMarkers", [](const CollisionEnvDistanceField& self, distance_field::PlaneVisualizationType type, double length, double width, double height,
+                                    const Eigen::Vector3d& origin, const std::string& frame_id, const std::string& stamp_name) {
+      visualization_msgs::Marker marker_array;
+      auto stamp = (stamp_name == "now") ? ros::Time::now() : ros::Time(0);
+      self.getPlaneMarkers(type, length, width, height, origin, frame_id, stamp, marker_array);
+
+      return marker_array;
+    })
+    .def("createIsoSurfaceMarkers", [](const CollisionEnvDistanceField& self, double min_distance, double max_distance,
+      const std::string& frame_id, const std::string& stamp_name) {
+      visualization_msgs::Marker marker_array;
+      auto stamp = (stamp_name == "now") ? ros::Time::now() : ros::Time(0);
+      self.getIsoSurfaceMarkers(min_distance, max_distance, frame_id, stamp, marker_array);
+
+      return marker_array;
+    })
   //
   ;
 }

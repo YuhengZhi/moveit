@@ -316,9 +316,7 @@ void AllowedCollisionMatrix::clear()
 void AllowedCollisionMatrix::getAllEntryNames(std::vector<std::string>& names) const
 {
   names.clear();
-  std::cout << "printing ACM entry names" << std::endl;
   for (const auto& entry : entries_) {
-    std::cout << entry.first << std::endl;
     if (!names.empty() && names.back() == entry.first)
       continue;
     else
