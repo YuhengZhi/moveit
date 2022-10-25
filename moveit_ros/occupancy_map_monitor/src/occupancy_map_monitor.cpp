@@ -75,6 +75,18 @@ OccupancyMapMonitor::OccupancyMapMonitor(const std::shared_ptr<tf2_ros::Buffer>&
   initialize();
 }
 
+OccupancyMapMonitor::OccupancyMapMonitor(const std::shared_ptr<tf2_ros::Buffer>& tf_buffer, const std::string& ns,
+                                         const std::string& map_frame, double map_resolution)
+  : tf_buffer_(tf_buffer)
+  , map_frame_(map_frame)
+  , map_resolution_(map_resolution)
+  , debug_info_(false)
+  , mesh_handle_count_(0)
+  , nh_(ns)
+{
+  initialize();
+}
+
 void OccupancyMapMonitor::initialize()
 {
   /* load params from param server */
@@ -103,6 +115,7 @@ void OccupancyMapMonitor::initialize()
   tree_const_ = tree_;
 
   XmlRpc::XmlRpcValue sensor_list;
+  std::cout << "node handle namespace: " << nh_.getNamespace() << std::endl;
   if (nh_.getParam("sensors", sensor_list))
   {
     try

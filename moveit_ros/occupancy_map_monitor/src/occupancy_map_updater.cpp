@@ -77,6 +77,10 @@ bool OccupancyMapUpdater::updateTransformCache(const std::string& target_frame, 
   {
     bool success = transform_provider_callback_(target_frame, target_time, transform_cache_);
     if (!success)
+      // ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "OMU: updateTransformCache failed");
+      ROS_ERROR_THROTTLE_NAMED(1, LOGNAME, "aksjdajskd target_frame '%s' could not be transformed into the map frame '%s'",
+                               target_frame.c_str(), monitor_->getMapFrame().c_str());
+      std::cout << "OMU: updateTransformCache failed" << std::endl;
       ROS_ERROR_THROTTLE_NAMED(
           1, LOGNAME,
           "Transform cache was not updated. Self-filtering may fail. If transforms were not available yet, consider "

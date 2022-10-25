@@ -301,6 +301,9 @@ void PlanningScene::getOctomap()
   if(tree)
   {
     printf("Inside OctoTree\n");
+    std::cout << "tree nodes: " << tree->calcNumNodes() << std::endl;
+    std::cout << "change detection activated: " << tree->isChangeDetectionEnabled() << std::endl;
+    std::cout << "ps tree address: " << tree.get() << std::endl;
     auto begin = tree->changedKeysBegin();
     auto end = tree->changedKeysEnd();
     for(; begin != end; ++begin){

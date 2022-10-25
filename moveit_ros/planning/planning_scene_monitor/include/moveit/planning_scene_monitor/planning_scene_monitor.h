@@ -39,6 +39,7 @@
 #include <ros/ros.h>
 #include <ros/callback_queue.h>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_listener.h>
 #include <moveit/macros/class_forward.h>
 #include <moveit/planning_scene/planning_scene.h>
 #include <moveit/robot_model_loader/robot_model_loader.h>
@@ -112,6 +113,17 @@ public:
   PlanningSceneMonitor(const std::string& robot_description,
                        const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
                        const std::string& name = "");
+  
+  /** @brief Constructor
+   *  @param robot_description The name of the ROS parameter that contains the URDF (in string format)
+   *  @param ns The namespace to use for node handle
+   *  @param tf_buffer A pointer to a tf2_ros::Buffer
+   *  @param name A name identifying this planning scene monitor
+   */
+  PlanningSceneMonitor(const std::string& robot_description,
+                       const std::string& ns,
+                       const std::shared_ptr<tf2_ros::Buffer>& tf_buffer = std::shared_ptr<tf2_ros::Buffer>(),
+                       const std::string& name = "");
 
   /** @brief Constructor
    *  @param rml A pointer to a kinematic model loader
@@ -168,6 +180,7 @@ public:
   bool getDetectionState();
 
   Eigen::MatrixXd getChangeDetectionCoordinate();
+  // bool getChangeDetectionCoordinate();
 
   /** \brief Get the name of this monitor */
   const std::string& getName() const
@@ -487,6 +500,7 @@ protected:
   std::shared_ptr<ros::AsyncSpinner> spinner_;
 
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
   std::string robot_description_;
 

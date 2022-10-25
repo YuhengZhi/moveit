@@ -57,8 +57,8 @@ void def_planning_scene_monitor_bindings(py::module& m)
             .value("UPDATE_SCENE", PlanningSceneMonitor::UPDATE_SCENE)
             .export_values();
      py::class_<PlanningSceneMonitor, PlanningSceneMonitorPtr>(m, "PlanningSceneMonitor")
-          .def(py::init<const std::string&>(),
-               py::arg("robot_description") = "robot_description")
+          .def(py::init<const std::string&, const std::string&>(),
+               py::arg("robot_description") = "robot_description", py::arg("ns") = "~")
           .def("getName", &PlanningSceneMonitor::getName)
           .def("getPlanningScene", py::overload_cast<>(
                &PlanningSceneMonitor::getPlanningScene), py::return_value_policy::reference)

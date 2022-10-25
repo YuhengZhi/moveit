@@ -207,6 +207,7 @@ int main(int argc, char** argv)
   moveit_cpp::MoveItCpp::Options moveit_cpp_options(pnh);
 
   // Prepare PlanningPipelineOptions
+  std::cout << "PNH namespace is: " << pnh.getNamespace() << std::endl;
   moveit_cpp_options.planning_pipeline_options.parent_namespace = pnh.getNamespace() + "/planning_pipelines";
   XmlRpc::XmlRpcValue planning_pipeline_configs;
   if (pnh.getParam("planning_pipelines", planning_pipeline_configs))
@@ -265,6 +266,7 @@ int main(int argc, char** argv)
 
   // Initialize MoveItCpp
   const auto tf_buffer = std::make_shared<tf2_ros::Buffer>(ros::Duration(10.0));
+  // tf_buffer->setUsingDedicatedThread(true);
   const auto moveit_cpp = std::make_shared<moveit_cpp::MoveItCpp>(moveit_cpp_options, pnh, tf_buffer);
   const auto planning_scene_monitor = moveit_cpp->getPlanningSceneMonitor();
 
