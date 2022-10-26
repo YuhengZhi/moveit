@@ -75,7 +75,6 @@ public:
    *  pointer. The value of this pointer stays the same throughout the existance of the monitor instance. */
   const OccMapTreePtr& getOcTreePtr()
   {
-    std::cout << "returning non-const PSM tree pointer" << std::endl;
     return tree_;
   }
 
@@ -83,7 +82,6 @@ public:
    *  tree before reading this pointer */
   const OccMapTreeConstPtr& getOcTreePtr() const
   {
-    std::cout << "returning const PSM tree pointer" << std::endl;
     return tree_const_;
   }
 
