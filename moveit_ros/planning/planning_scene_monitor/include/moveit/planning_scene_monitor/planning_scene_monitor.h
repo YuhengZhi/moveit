@@ -180,8 +180,7 @@ public:
   bool getDetectionState();
   int getNumChangeDetection();
 
-  // Eigen::MatrixXd getChangeDetectionCoordinate();
-  int getChangeDetectionCoordinate();
+  int getFlippedVoxelCoordinates(Eigen::MatrixXd& coordinates);
 
   /** \brief Get the name of this monitor */
   const std::string& getName() const

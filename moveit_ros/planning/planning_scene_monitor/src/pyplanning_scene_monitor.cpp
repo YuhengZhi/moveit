@@ -81,7 +81,11 @@ void def_planning_scene_monitor_bindings(py::module& m)
           .def("enableChangeDetection", &PlanningSceneMonitor::enableChangeDetection)
           .def("disableChangeDetection", &PlanningSceneMonitor::disableChangeDetection)
           .def("resetChangeDetection", &PlanningSceneMonitor::resetChangeDetection)
-          .def("getChangedDetectionCoordinate", &PlanningSceneMonitor::getChangeDetectionCoordinate)
+          .def("getFlippedVoxelCoordinates", [](PlanningSceneMonitor& self) {
+               Eigen::MatrixXd changed_voxel_coordinates;
+               self.getFlippedVoxelCoordinates(changed_voxel_coordinates);
+               return changed_voxel_coordinates;
+          })
           .def("getDetectionState", &PlanningSceneMonitor::getDetectionState)
           .def("getNumChange", &PlanningSceneMonitor::getNumChangeDetection)
       //

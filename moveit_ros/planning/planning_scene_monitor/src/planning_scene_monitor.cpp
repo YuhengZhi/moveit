@@ -576,66 +576,36 @@ bool PlanningSceneMonitor::getDetectionState(){
   return octree->isChangeDetectionEnabled();
 }
 
-// Eigen::MatrixXd PlanningSceneMonitor::getChangeDetectionCoordinate(){
-//   auto octree = octomap_monitor_->getOcTreePtr();
-//   octree->lockWrite();
-//   auto tree_begin = octree->changedKeysBegin();
-//   auto tree_end = octree->changedKeysEnd(); 
-//   std::cout << "changed keys size: " << octree->numChangesDetected() << std::endl;
-//   if (tree_begin == tree_end){
-//     return Eigen::MatrixXd();
-//   }
-//   int i = 1;
-//   Eigen::MatrixXd coordinate(i, 3);
-//   for(auto it = tree_begin; it != tree_end; ++it){
-//     octomap::point3d point = octree->keyToCoord(it->first);
-//     if (i > 1) coordinate.conservativeResize(i, 3);
-//     coordinate(i, 0) = point.x();
-//     coordinate(i, 1) = point.y();
-//     coordinate(i, 2) = point.z();
-//     i++;
-//   }
-//   octree->unlockWrite();
-//   octree->resetChangeDetection();
-//   return coordinate;
-// }
-
-
 int PlanningSceneMonitor::getNumChangeDetection(){
   return static_cast<int>(octomap_monitor_->getOcTreePtr()->numChangesDetected());
 }
 
-int PlanningSceneMonitor::getChangeDetectionCoordinate(){
+int PlanningSceneMonitor::getFlippedVoxelCoordinates(Eigen::MatrixXd& coordinates){
+// std::shared_ptr<Eigen::MatrixXd> PlanningSceneMonitor::getChangeDetectionCoordinate(){
   auto octree = octomap_monitor_->getOcTreePtr();
-  std::cout << "Locking write" << std::endl;
+  // std::cout << "PSM OcTree: Locking write" << std::endl;
   octree->lockWrite();
-  std::cout << "Locking write done" << std::endl;
+  // std::cout << "PSM OcTree: Locked write" << std::endl;
   auto tree_begin = octree->changedKeysBegin();
   auto tree_end = octree->changedKeysEnd(); 
-  std::cout << "Enabled: " << octree->isChangeDetectionEnabled() << std::endl;
-  std::cout << "changed keys size: " << octree->numChangesDetected() << std::endl;
-  std::cout << "Number of nodes: " << octree->calcNumNodes() << std::endl;
-  // const OccTreeConstPtr& const_tree_pointer = octomap_monitor_->getOcTreePtr();
-  std::cout << "PSM tree address at: " << (octomap_monitor_->getOcTreePtr()).get() << std::endl;
-  // if (tree_begin == tree_end){
-  //   return Eigen::MatrixXd();
-  // }
-  // int i = 1;
-  // Eigen::MatrixXd coordinate(i, 3);
-  // for(auto it = tree_begin; it != tree_end; ++it){
-  //   octomap::point3d point = octree->keyToCoord(it->first);
-  //   if (i > 1) coordinate.conservativeResize(i, 3);
-  //   coordinate(i, 0) = point.x();
-  //   coordinate(i, 1) = point.y();
-  //   coordinate(i, 2) = point.z();
-  //   i++;
-  // }
+  // std::cout << "Enabled: " << octree->isChangeDetectionEnabled() << std::endl;
+  // std::cout << "changed keys size: " << octree->numChangesDetected() << std::endl;
+  // std::cout << "Number of nodes: " << octree->calcNumNodes() << std::endl;
+  int num_changed = octree->numChangesDetected();
+  coordinates.resize(num_changed, 3);
+  int i = 0;
+  for(auto it = tree_begin; it != tree_end; ++it){
+    octomap::point3d point = octree->keyToCoord(it->first);
+    coordinates(i, 0) = point.x();
+    coordinates(i, 2) = point.z();
+    coordinates(i, 1) = point.y();
+    i++;
+  }
   octree->resetChangeDetection();
-  std::cout << "Unlocking write" << std::endl;
+  // std::cout << "PSM OcTree: Unlocking write" << std::endl;
   octree->unlockWrite();
-  std::cout << "Unlocking write done" << std::endl;
-  //TODO: return number of changes
-  return true;
+  // std::cout << "PSM OcTree: Unlocked write" << std::endl;
+  return num_changed;
 }
 
 void PlanningSceneMonitor::clearOctomap()
@@ -1119,15 +1089,14 @@ void PlanningSceneMonitor::stopSceneMonitor()
 bool PlanningSceneMonitor::getShapeTransformCache(const std::string& target_frame, const ros::Time& target_time,
                                                   occupancy_map_monitor::ShapeTransformCache& cache) const
 {
-  std::cout << "tf buffer address" << tf_buffer_.get() << std::endl;
   if (!tf_buffer_)
     return false;
-  std::cout << "PSM: getShapeTransformCache" << std::endl;
+  // std::cout << "PSM: getShapeTransformCache" << std::endl;
   try
   {
     boost::recursive_mutex::scoped_lock _(shape_handles_lock_);
 
-    std::cout << "PSM: getShapeTransformCache locked" << std::endl;
+    // std::cout << "PSM: getShapeTransformCache locked" << std::endl;
 
     for (const std::pair<const moveit::core::LinkModel* const,
                          std::vector<std::pair<occupancy_map_monitor::ShapeHandle, std::size_t>>>& link_shape_handle :
@@ -1166,7 +1135,7 @@ bool PlanningSceneMonitor::getShapeTransformCache(const std::string& target_fram
              collision_body_shape_handle.second)
           cache[it.first] = transform * (*it.second);
     }
-    std::cout << "PSM: getShapeTransformCache unlocked" << std::endl;
+    // std::cout << "PSM: getShapeTransformCache unlocked" << std::endl;
   }
   catch (tf2::TransformException& ex)
   {
